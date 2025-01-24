@@ -1,0 +1,203 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 py-12 px-4 relative">
+  <!-- Indicador de pasos -->
+  <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+    <div class="flex items-center space-x-8 bg-black/20 backdrop-blur-sm px-8 py-4 rounded-2xl">
+      <div class="flex flex-col items-center">
+        <div [class]="'w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 1 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
+          1
+        </div>
+        <div class="text-xs mt-1 text-white/70">Configuración</div>
+      </div>
+      <div class="w-16 h-0.5 bg-white/20 mt--4"></div>
+      <div class="flex flex-col items-center">
+        <div [class]="'w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 2 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
+          2
+        </div>
+        <div class="text-xs mt-1 text-white/70">Fondo</div>
+      </div>
+      <div class="w-16 h-0.5 bg-white/20 mt--4"></div>
+      <div class="flex flex-col items-center">
+        <div [class]="'w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 3 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
+          3
+        </div>
+        <div class="text-xs mt-1 text-white/70">Foto</div>
+      </div>
+      <div class="w-16 h-0.5 bg-white/20 mt--4"></div>
+      <div class="flex flex-col items-center">
+        <div [class]="'w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 4 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
+          4
+        </div>
+        <div class="text-xs mt-1 text-white/70">Composición</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor principal -->
+  <div class="max-w-2xl mx-auto backdrop-blur-lg bg-white/10 rounded-xl shadow-2xl overflow-hidden border border-white/20 mt-20">
+    <!-- Paso 1: Email -->
+    <div *ngIf="currentStep === 1" class="p-8">
+      <h2 class="text-3xl font-bold text-white mb-6">Configuración de envío</h2>
+      <form [formGroup]="emailForm" (ngSubmit)="onEmailSubmit()" class="space-y-6">
+        <div class="flex items-center space-x-3">
+          <input 
+            type="checkbox"
+            id="wantsEmail"
+            [(ngModel)]="wantsEmail"
+            [ngModelOptions]="{standalone: true}"
+            (change)="toggleEmailOption()"
+            class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 bg-white/10 border-white/20"
+          >
+          <label for="wantsEmail" class="text-white">
+            Recibir imagen por correo electrónico
+          </label>
+        </div>
+
+        <div class="space-y-2">
+          <input 
+            type="email" 
+            formControlName="email"
+            class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            placeholder="tu@email.com"
+          >
+          <p class="text-sm text-white/70" *ngIf="wantsEmail && policiesAccepted">
+            Políticas de privacidad aceptadas
+          </p>
+        </div>
+
+        <button 
+          type="submit"
+          [disabled]="wantsEmail && !emailForm.valid"
+          class="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+        >
+          Continuar
+        </button>
+      </form>
+    </div>
+
+    <!-- Modal de Políticas -->
+    <div *ngIf="showPolicyModal" 
+         class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 transform transition-all">
+        <div class="p-6">
+          <h3 class="text-2xl font-bold text-gray-900 mb-4">
+            Políticas de Privacidad
+          </h3>
+          <div class="prose prose-sm max-h-96 overflow-y-auto mb-6">
+            <p>Al aceptar estas políticas, usted está de acuerdo con:</p>
+            <ul>
+              <li>El almacenamiento temporal de su dirección de correo electrónico.</li>
+              <li>El envío de la imagen generada a su correo electrónico.</li>
+              <li>El uso de sus datos únicamente para este propósito específico.</li>
+            </ul>
+            <p>Sus datos serán eliminados inmediatamente después del envío del correo electrónico.</p>
+          </div>
+          <div class="flex justify-end space-x-4">
+            <button 
+              (click)="cancelPolicies()"
+              class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button 
+              (click)="acceptPolicies()"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 2: Selección de fondo -->
+    <div *ngIf="currentStep === 2" class="p-8">
+      <h2 class="text-3xl font-bold text-white mb-6">Selecciona el fondo</h2>
+      <div class="grid grid-cols-3 gap-4">
+        <div *ngFor="let bg of backgrounds" 
+             class="relative group cursor-pointer transform transition-all duration-300 hover:scale-105"
+             (click)="selectBackground(bg.url)">
+          <img [src]="bg.url" 
+               [alt]="bg.name"
+               class="w-full h-48 object-cover rounded-lg shadow-lg">
+          <div class="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/20 rounded-lg transition-all duration-300 flex items-center justify-center">
+            <div class="opacity-0 group-hover:opacity-100 transform group-hover:scale-100 scale-95 transition-all duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 3: Captura de foto -->
+    <div *ngIf="currentStep === 3" class="p-8">
+      <h2 class="text-3xl font-bold text-white mb-6">Captura tu foto</h2>
+      <div class="space-y-4">
+        <div *ngIf="showWebcam" class="relative">
+          <div class="transform scale-x-[-1]">
+            <webcam
+              [trigger]="triggerObservable"
+              (imageCapture)="handleImage($event)"
+              [allowCameraSwitch]="true"
+              [switchCamera]="switchCamera"
+              (initError)="handleInitError($event)"
+              (initSuccess)="handleInitSuccess()"
+              [videoOptions]="videoOptions"
+              [imageQuality]="1"
+              class="rounded-lg overflow-hidden w-full"
+            ></webcam>
+          </div>
+          
+          <button 
+            *ngIf="isCameraReady"
+            (click)="triggerSnapshot()"
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>Capturar Foto</span>
+          </button>
+        </div>
+
+        <div *ngIf="errors.length > 0" class="text-red-400 text-center p-4">
+          No se pudo acceder a la cámara. Por favor, asegúrate de dar los permisos necesarios.
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 4: Composición -->
+    <div *ngIf="currentStep === 4" class="p-8">
+      <h2 class="text-3xl font-bold text-white mb-6">Procesando imágenes</h2>
+      <div class="relative flex justify-between items-center py-12 overflow-hidden">
+        <!-- Imagen principal -->
+        <div class="w-48 h-48 rounded-xl overflow-hidden shadow-2xl transition-all duration-700"
+             [class.animate-slide-right]="isMerging">
+          <img [src]="imagePreview" 
+               alt="Preview" 
+               class="w-full h-full object-cover">
+        </div>
+
+        <!-- Imagen resultante (fusión) -->
+        <div class="absolute left-1/2 -translate-x-1/2 w-56 h-56 rounded-xl overflow-hidden shadow-2xl transition-all duration-700 transform scale-110 bg-white/20 backdrop-blur-sm z-10">
+          <div class="absolute inset-0 flex items-center justify-center text-white">
+            <svg class="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Imagen de fondo -->
+        <div class="w-48 h-48 rounded-xl overflow-hidden shadow-2xl transition-all duration-700"
+             [class.animate-slide-left]="isMerging">
+          <img [src]="backgroundPreview" 
+               alt="Background Preview" 
+               class="w-full h-full object-cover">
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
