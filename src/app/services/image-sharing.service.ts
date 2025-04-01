@@ -23,7 +23,7 @@ export class ImageSharingService {
     const formData = new FormData();
     formData.append('key', this.IMGBB_API_KEY);
     formData.append('image', base64Image);
-    formData.append('expiration', '5'); // 1 hora (en minutos)
+    formData.append('expiration', '60'); // 60 segundos
     
     return this.http.post('https://api.imgbb.com/1/upload', formData).pipe(
       map((response: any) => {

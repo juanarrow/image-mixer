@@ -26,18 +26,9 @@ async function setupBackends() {
   }
 }
 
-// Añadir estas interfaces para los métodos específicos de navegador
-interface HTMLElementWithFullscreen extends HTMLElement {
-  mozRequestFullScreen?: () => Promise<void>;
-  webkitRequestFullscreen?: () => Promise<void>;
-  msRequestFullscreen?: () => Promise<void>;
-}
 
-interface DocumentWithFullscreen extends Document {
-  mozCancelFullScreen?: () => Promise<void>;
-  webkitExitFullscreen?: () => Promise<void>;
-  msExitFullscreen?: () => Promise<void>;
-}
+
+
 
 @Component({
   selector: 'app-image-composer',
@@ -150,11 +141,9 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
   // Variable para controlar el estado de la inicialización
   private isInitializing = false;
 
-  // Añadir esta propiedad
-  isFullscreen: boolean = false;
+  
 
-  // Añade esta nueva propiedad
-  showFullscreenModal: boolean = false;
+  
 
   // Añadir estas propiedades al componente
   qrImageUrl: string | null = null;
@@ -253,10 +242,7 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
         console.log('Dispositivos de cámara disponibles:', mediaDevices);
       });
 
-    // Mostrar modal personalizado en lugar de confirm
-    setTimeout(() => {
-      this.showFullscreenModal = true;
-    }, 1000);
+    
   }
 
   ngOnDestroy() {
@@ -936,65 +922,10 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
     });
   }
 
-  // Método corregido para entrar en pantalla completa
-  requestFullscreen() {
-    const docElm = document.documentElement as HTMLElementWithFullscreen;
-    
-    if (docElm.requestFullscreen) {
-      docElm.requestFullscreen();
-    } else if (docElm.mozRequestFullScreen) { /* Firefox */
-      docElm.mozRequestFullScreen();
-    } else if (docElm.webkitRequestFullscreen) { /* Chrome, Safari y Opera */
-      docElm.webkitRequestFullscreen();
-    } else if (docElm.msRequestFullscreen) { /* IE/Edge */
-      docElm.msRequestFullscreen();
-    }
-    
-    this.isFullscreen = true;
-  }
   
-  // Método corregido para salir de pantalla completa
-  exitFullscreen() {
-    const doc = document as DocumentWithFullscreen;
-    
-    if (doc.exitFullscreen) {
-      doc.exitFullscreen();
-    } else if (doc.mozCancelFullScreen) { /* Firefox */
-      doc.mozCancelFullScreen();
-    } else if (doc.webkitExitFullscreen) { /* Chrome, Safari y Opera */
-      doc.webkitExitFullscreen();
-    } else if (doc.msExitFullscreen) { /* IE/Edge */
-      doc.msExitFullscreen();
-    }
-    
-    this.isFullscreen = false;
-  }
   
-  // Escucha los cambios de estado de pantalla completa
-  @HostListener('document:fullscreenchange', ['$event'])
-  @HostListener('document:webkitfullscreenchange', ['$event'])
-  @HostListener('document:mozfullscreenchange', ['$event'])
-  @HostListener('document:MSFullscreenChange', ['$event'])
-  onFullscreenChange() {
-    this.isFullscreen = !!document.fullscreenElement;
-  }
-  
-  // Reemplazar el método showFullscreenPrompt
-  showFullscreenPrompt() {
-    // Ya no hacemos nada aquí, el modal se muestra en ngOnInit
-  }
 
-  // Añadir este nuevo método
-  closeFullscreenModal(enterFullscreen: boolean) {
-    this.showFullscreenModal = false;
-    
-    if (enterFullscreen) {
-      // Retrasar ligeramente para asegurar que el evento de clic se complete
-      setTimeout(() => {
-        this.requestFullscreen();
-      }, 50);
-    }
-  }
+  
 
   // Añadir este nuevo método para reinicializar la aplicación
   resetApplication() {
