@@ -1,0 +1,8 @@
+{
+  "/node_modules": {
+    "target": "http://localhost:4200",
+    "pathRewrite": {
+      "^/node_modules": "./node_modules"
+    }
+  }
+} 

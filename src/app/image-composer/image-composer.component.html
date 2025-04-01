@@ -1,203 +1,346 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 py-12 px-4 relative">
+<div class="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 p-4 sm:p-8 relative flex flex-col">
   <!-- Indicador de pasos -->
-  <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-    <div class="flex items-center space-x-8 bg-black/20 backdrop-blur-sm px-8 py-4 rounded-2xl">
-      <div class="flex flex-col items-center">
-        <div [class]="'w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 1 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
+  <div class="w-full max-w-5xl mx-auto mb-4">
+    <div class="flex items-center justify-between bg-black/20 backdrop-blur-sm px-6 sm:px-12 py-4 sm:py-6 rounded-2xl">
+      <!-- Paso 1 -->
+      <div class="flex flex-col items-center w-32">
+        <div [class]="'w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 1 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
           1
         </div>
-        <div class="text-xs mt-1 text-white/70">Configuración</div>
+        <div class="text-sm mt-2 text-white/70">Estilo</div>
       </div>
-      <div class="w-16 h-0.5 bg-white/20 mt--4"></div>
-      <div class="flex flex-col items-center">
-        <div [class]="'w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 2 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
+
+      <!-- Línea divisoria -->
+      <div class="flex-1 h-0.5 bg-white/20"></div>
+
+      <!-- Paso 2 (antes era Paso 3) -->
+      <div class="flex flex-col items-center w-32">
+        <div [class]="'w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 2 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
           2
         </div>
-        <div class="text-xs mt-1 text-white/70">Fondo</div>
+        <div class="text-sm mt-2 text-white/70">Foto</div>
       </div>
-      <div class="w-16 h-0.5 bg-white/20 mt--4"></div>
-      <div class="flex flex-col items-center">
-        <div [class]="'w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 3 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
+
+      <!-- Línea divisoria -->
+      <div class="flex-1 h-0.5 bg-white/20"></div>
+
+      <!-- Paso 3 (antes era Paso 4) -->
+      <div class="flex flex-col items-center w-32">
+        <div [class]="'w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 3 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
           3
         </div>
-        <div class="text-xs mt-1 text-white/70">Foto</div>
-      </div>
-      <div class="w-16 h-0.5 bg-white/20 mt--4"></div>
-      <div class="flex flex-col items-center">
-        <div [class]="'w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 4 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
-          4
-        </div>
-        <div class="text-xs mt-1 text-white/70">Composición</div>
+        <div class="text-sm mt-2 text-white/70">Resultado</div>
       </div>
     </div>
   </div>
 
   <!-- Contenedor principal -->
-  <div class="max-w-2xl mx-auto backdrop-blur-lg bg-white/10 rounded-xl shadow-2xl overflow-hidden border border-white/20 mt-20">
-    <!-- Paso 1: Email -->
-    <div *ngIf="currentStep === 1" class="p-8">
-      <h2 class="text-3xl font-bold text-white mb-6">Configuración de envío</h2>
-      <form [formGroup]="emailForm" (ngSubmit)="onEmailSubmit()" class="space-y-6">
-        <div class="flex items-center space-x-3">
-          <input 
-            type="checkbox"
-            id="wantsEmail"
-            [(ngModel)]="wantsEmail"
-            [ngModelOptions]="{standalone: true}"
-            (change)="toggleEmailOption()"
-            class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 bg-white/10 border-white/20"
-          >
-          <label for="wantsEmail" class="text-white">
-            Recibir imagen por correo electrónico
-          </label>
-        </div>
-
-        <div class="space-y-2">
-          <input 
-            type="email" 
-            formControlName="email"
-            class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            placeholder="tu@email.com"
-          >
-          <p class="text-sm text-white/70" *ngIf="wantsEmail && policiesAccepted">
-            Políticas de privacidad aceptadas
-          </p>
-        </div>
-
-        <button 
-          type="submit"
-          [disabled]="wantsEmail && !emailForm.valid"
-          class="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-        >
-          Continuar
-        </button>
-      </form>
-    </div>
-
-    <!-- Modal de Políticas -->
-    <div *ngIf="showPolicyModal" 
-         class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 transform transition-all">
-        <div class="p-6">
-          <h3 class="text-2xl font-bold text-gray-900 mb-4">
-            Políticas de Privacidad
-          </h3>
-          <div class="prose prose-sm max-h-96 overflow-y-auto mb-6">
-            <p>Al aceptar estas políticas, usted está de acuerdo con:</p>
-            <ul>
-              <li>El almacenamiento temporal de su dirección de correo electrónico.</li>
-              <li>El envío de la imagen generada a su correo electrónico.</li>
-              <li>El uso de sus datos únicamente para este propósito específico.</li>
-            </ul>
-            <p>Sus datos serán eliminados inmediatamente después del envío del correo electrónico.</p>
-          </div>
-          <div class="flex justify-end space-x-4">
-            <button 
-              (click)="cancelPolicies()"
-              class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button 
-              (click)="acceptPolicies()"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Aceptar
-            </button>
+  <div class="flex-1 flex flex-col items-center justify-center w-full h-[90vh] max-h-[90vh]">
+    <div class="flex flex-col flex-1 w-full h-full landscape:w-full portrait:w-full max-w-5xl mx-auto">
+      <div class="flex flex-col flex-1 w-full h-full backdrop-blur-lg landscape:bg-white/10 landscape:rounded-xl landscape:shadow-2xl landscape:border landscape:border-white/20">
+        <!-- Paso 1: Selección de estilo (reemplaza el form de email) -->
+        <div *ngIf="currentStep === 1" class="flex-1 w-full h-full flex flex-col">
+          <h2 class="text-2xl sm:text-3xl font-bold text-white p-4 sm:p-8 pb-2 sm:pb-4 flex-none">
+            Elige un estilo artístico
+          </h2>
+          <div class="flex-1 p-4 sm:p-8 pt-0 flex flex-col md:flex-row gap-6 overflow-auto">
+            <!-- Card de estilo Shinkai -->
+            <div class="flex-1 bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden 
+                        border border-white/20 hover:border-purple-400/50 hover:shadow-[0_0_15px_rgba(168,85,247,0.5)] 
+                        transition-all duration-300 cursor-pointer group"
+                 (click)="selectStyle('shinkai')">
+              <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-2"></div>
+              <div class="p-6">
+                <h3 class="text-xl font-bold mb-2 text-white flex items-center">
+                  <span class="mr-2">Estilo Shinkai</span>
+                  <span class="bg-purple-500/20 text-purple-200 text-xs py-1 px-2 rounded-full">Animation</span>
+                </h3>
+                <div class="mt-4 rounded-lg overflow-hidden relative group-hover:scale-105 transition-transform duration-300">
+                  <img src="assets/imgs/Shinkai.jpg" class="w-full h-auto" alt="Ejemplo estilo Shinkai">
+                  <div class="absolute inset-0 bg-gradient-to-t from-purple-900/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-4">
+                    <span class="text-white font-medium">Seleccionar</span>
+                  </div>
+                </div>
+                <p class="mt-4 text-white/70">
+                  Transforma tu imagen con los colores vibrantes y la atmósfera emotiva característica de Makoto Shinkai, 
+                  famoso por "Your Name" y "Weathering with You".
+                </p>
+              </div>
+            </div>
+            
+            <!-- Card de estilo Hayao -->
+            <div class="flex-1 bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden
+                        border border-white/20 hover:border-teal-400/50 hover:shadow-[0_0_15px_rgba(45,212,191,0.5)]
+                        transition-all duration-300 cursor-pointer group"
+                 (click)="selectStyle('hayao')">
+              <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-2"></div>
+              <div class="p-6">
+                <h3 class="text-xl font-bold mb-2 text-white flex items-center">
+                  <span class="mr-2">Estilo Hayao</span>
+                  <span class="bg-teal-500/20 text-teal-200 text-xs py-1 px-2 rounded-full">Ghibli</span>
+                </h3>
+                <div class="mt-4 rounded-lg overflow-hidden relative group-hover:scale-105 transition-transform duration-300">
+                  <img src="assets/imgs/Hayao.jpg" class="w-full h-auto" alt="Ejemplo estilo Hayao">
+                  <div class="absolute inset-0 bg-gradient-to-t from-teal-900/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-4">
+                    <span class="text-white font-medium">Seleccionar</span>
+                  </div>
+                </div>
+                <p class="mt-4 text-white/70">
+                  Transforma tu imagen con el estilo suave y detallado de Hayao Miyazaki y los estudios Ghibli, 
+                  creadores de "Mi vecino Totoro" y "El viaje de Chihiro".
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Paso 2: Selección de fondo -->
-    <div *ngIf="currentStep === 2" class="p-8">
-      <h2 class="text-3xl font-bold text-white mb-6">Selecciona el fondo</h2>
-      <div class="grid grid-cols-3 gap-4">
-        <div *ngFor="let bg of backgrounds" 
-             class="relative group cursor-pointer transform transition-all duration-300 hover:scale-105"
-             (click)="selectBackground(bg.url)">
-          <img [src]="bg.url" 
-               [alt]="bg.name"
-               class="w-full h-48 object-cover rounded-lg shadow-lg">
-          <div class="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/20 rounded-lg transition-all duration-300 flex items-center justify-center">
-            <div class="opacity-0 group-hover:opacity-100 transform group-hover:scale-100 scale-95 transition-all duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        <!-- Paso 2: Captura de imagen a pantalla completa -->
+        <div *ngIf="currentStep === 2" class="flex flex-col items-center w-full h-full">
+          <!-- Contenedor principal explícitamente dimensionado -->
+          <div class="relative w-full h-full" style="min-height: 400px; min-width: 300px;">
+            <!-- Contenedor del video con altura y anchura explícitas -->
+            <div #webcamContainer class="relative w-full h-full flex items-center justify-center overflow-hidden" 
+                 style="height: 100%; width: 100%;">
+              <div class="relative" [style.width.px]="webcamWidth" [style.height.px]="webcamHeight">
+                <webcam 
+                  #webcam
+                  [trigger]="triggerObservable" 
+                  [height]="webcamHeight" 
+                  [width]="webcamWidth" 
+                  [videoOptions]="videoOptions"
+                  [allowCameraSwitch]="allowCameraSwitch" 
+                  [switchCamera]="nextWebcamObservable" 
+                  [imageQuality]="1" 
+                  (imageCapture)="handleImage($event)"
+                  (initError)="handleInitError($event)"
+                  (initSuccess)="handleInitSuccess()"
+                  class="absolute inset-0"
+                  style="transform: scaleX(-1);">
+                </webcam>
+                
+                <!-- Canvas con dimensiones explícitas -->
+                <canvas #handCanvas 
+                  class="absolute inset-0 z-10"
+                  [width]="webcamWidth"
+                  [height]="webcamHeight"
+                  style="display:none;background-color: transparent;">
+                  
+                </canvas>
+              </div>
+            </div>
+            
+            
+            <!-- Indicador y botón de respaldo -->
+            <div class="absolute bottom-6 left-0 right-0 flex justify-center space-x-4 z-20">
+              <div *ngIf="!isHandDetected && isCameraReady" class="bg-blue-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm animate-pulse">
+                Muestra tu mano a la cámara para capturar foto
+              </div>
+              
+            </div>
+          </div>
+          
+          
+          
+          <!-- Indicador de procesamiento de manos (si aplica) -->
+          <div *ngIf="!imagePreview && isProcessingHand" class="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+            <div class="animate-ping h-2 w-2 mr-2 rounded-full bg-white"></div>
+            Detectando gestos...
+          </div>
+        </div>
+
+        <!-- Paso 3: Resultado con un solo estilo -->
+        <div *ngIf="currentStep === 3" class="flex-1 w-full h-full flex flex-col p-4 relative">
+          <!-- Cabecera con botón para volver al inicio -->
+          <div class="w-full flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-white">
+              Tu imagen en estilo {{ selectedStyle ? styleNames[selectedStyle] : '' }}
+            </h2>
+            <button (click)="resetApplication()" 
+              class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-full shadow-lg transition-all duration-200 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clip-rule="evenodd" />
               </svg>
+              Volver al inicio
+            </button>
+          </div>
+          
+          <!-- Contenedor principal de resultado y QR -->
+          <div class="flex-1 flex flex-col md:flex-row gap-6 overflow-hidden">
+            <!-- Imagen procesada - Ocupa más espacio -->
+            <div class="md:w-2/3 bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg border border-white/20 flex flex-col">
+              <div [class]="'bg-gradient-to-r h-2 ' + (selectedStyle === 'shinkai' ? 'from-purple-500 to-purple-600' : 'from-teal-500 to-teal-600')"></div>
+              
+              <div class="flex-1 p-4 flex flex-col relative">
+                <h3 class="text-lg font-semibold mb-2 text-white">
+                  Estilo {{ selectedStyle ? styleNames[selectedStyle] : '' }}
+                </h3>
+                
+                <div class="relative flex-1">
+                  <!-- Imagen procesada -->
+                  <div *ngIf="currentUploadedUrl" class="absolute inset-0 flex items-center justify-center">
+                    <img  
+                      [src]="selectedStyle === 'shinkai' ? resultImage1 : resultImage2" 
+                      class="max-h-full max-w-full object-contain rounded-lg" 
+                      [alt]="'Imagen estilo ' + (selectedStyle ? styleNames[selectedStyle] : '')">
+                  </div>
+                  
+                  <!-- Spinner durante la carga - Mejoramos la visibilidad -->
+                  <div *ngIf="!currentUploadedUrl" class="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm rounded-lg z-10">
+                    <div class="flex flex-col items-center p-8 bg-black/40 backdrop-blur-md rounded-xl shadow-xl border border-white/10">
+                      <div class="spinner-pulse">
+                        <div class="h-20 w-20 rounded-full border-4 border-t-transparent" 
+                             [class]="selectedStyle === 'shinkai' ? 'border-purple-500' : 'border-teal-500'"
+                             style="animation: spin 1s linear infinite;"></div>
+                      </div>
+                      <p class="mt-5 text-base text-white/90 font-medium">
+                        Aplicando estilo {{ selectedStyle ? styleNames[selectedStyle] : '' }}...
+                      </p>
+                      <p class="mt-2 text-sm text-white/70">
+                        Esto puede tardar unos segundos...
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- QR Code y botón de descarga - Panel lateral -->
+            <div class="md:w-1/3 flex flex-col gap-4">
+              <!-- Código QR - Quitamos flex-1 y añadimos altura fija -->
+              <div class="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg border border-white/20 flex flex-col">
+                <div [class]="'bg-gradient-to-r h-2 ' + (selectedStyle === 'shinkai' ? 'from-purple-500 to-purple-600' : 'from-teal-500 to-teal-600')"></div>
+                
+                <div class="p-4 flex flex-col items-center">
+                  <h3 class="text-lg font-semibold mb-1 text-white">Código QR</h3>
+                  
+                  <p class="text-sm text-white/70 mb-4 text-center">
+                    Escanea para descargar<br>
+                    <span class="text-xs">(Expira en 5 minutos)</span>
+                  </p>
+                  
+                  <div class="bg-white p-3 rounded-lg mb-4 flex items-center justify-center">
+                    <!-- Generando QR con la librería -->
+                    <qrcode *ngIf="currentUploadedUrl && !isGeneratingQR" 
+                      [qrdata]="currentUploadedUrl" 
+                      [width]="180" 
+                      [errorCorrectionLevel]="'M'"
+                      [elementType]="'canvas'">
+                    </qrcode>
+                    
+                    <!-- Spinner mientras se genera el QR -->
+                    <div *ngIf="!currentUploadedUrl || isGeneratingQR" class="h-40 w-40 flex items-center justify-center">
+                      <div class="spinner-pulse">
+                        <div class="h-10 w-10 rounded-full border-4 border-t-transparent" 
+                             [class]="selectedStyle === 'shinkai' ? 'border-purple-500' : 'border-teal-500'"
+                             style="animation: spin 1s linear infinite;"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Espaciador flexible para empujar el botón hacia abajo si es necesario -->
+              <div class="flex-grow"></div>
+              
+              <!-- Botón de descarga -->
+              <button 
+                (click)="downloadImage(selectedStyle === 'shinkai' ? resultImage1 : resultImage2, 'imagen-' + selectedStyle + '.jpg')"
+                [disabled]="!(selectedStyle === 'shinkai' ? resultImage1 : resultImage2)"
+                [class]="'w-full py-4 px-6 rounded-xl text-white font-medium shadow-lg flex items-center justify-center transition-all duration-200 ' + 
+                        (selectedStyle === 'shinkai' ? 'bg-purple-600 hover:bg-purple-700' : 'bg-teal-600 hover:bg-teal-700') +
+                        (!(selectedStyle === 'shinkai' ? resultImage1 : resultImage2) ? ' opacity-50 cursor-not-allowed' : '')">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+                Descargar imagen
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- Paso 3: Captura de foto -->
-    <div *ngIf="currentStep === 3" class="p-8">
-      <h2 class="text-3xl font-bold text-white mb-6">Captura tu foto</h2>
-      <div class="space-y-4">
-        <div *ngIf="showWebcam" class="relative">
-          <div class="transform scale-x-[-1]">
-            <webcam
-              [trigger]="triggerObservable"
-              (imageCapture)="handleImage($event)"
-              [allowCameraSwitch]="true"
-              [switchCamera]="switchCamera"
-              (initError)="handleInitError($event)"
-              (initSuccess)="handleInitSuccess()"
-              [videoOptions]="videoOptions"
-              [imageQuality]="1"
-              class="rounded-lg overflow-hidden w-full"
-            ></webcam>
-          </div>
-          
-          <button 
-            *ngIf="isCameraReady"
-            (click)="triggerSnapshot()"
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span>Capturar Foto</span>
-          </button>
-        </div>
+<!-- Cuenta atrás -->
+<app-countdown-timer *ngIf="showCountdown"
+                    [startFrom]="5"
+                    (finished)="onCountdownFinished()">
+</app-countdown-timer>
 
-        <div *ngIf="errors.length > 0" class="text-red-400 text-center p-4">
-          No se pudo acceder a la cámara. Por favor, asegúrate de dar los permisos necesarios.
-        </div>
-      </div>
+<!-- Estilo para los spinners -->
+<style>
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  .spinner-pulse {
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+
+<!-- Añade este modal para solicitar pantalla completa al inicio -->
+<div *ngIf="showFullscreenModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center backdrop-blur-sm">
+  <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md mx-4 shadow-2xl">
+    <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Experiencia inmersiva</h3>
+    <p class="mb-6 text-gray-700 dark:text-gray-300">
+      Para una mejor experiencia, te recomendamos usar la aplicación en pantalla completa.
+    </p>
+    <div class="flex justify-end space-x-4">
+      <button 
+        (click)="closeFullscreenModal(false)" 
+        class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors">
+        Continuar normal
+      </button>
+      <button 
+        (click)="closeFullscreenModal(true)" 
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        Entrar en pantalla completa
+      </button>
     </div>
+  </div>
+</div>
 
-    <!-- Paso 4: Composición -->
-    <div *ngIf="currentStep === 4" class="p-8">
-      <h2 class="text-3xl font-bold text-white mb-6">Procesando imágenes</h2>
-      <div class="relative flex justify-between items-center py-12 overflow-hidden">
-        <!-- Imagen principal -->
-        <div class="w-48 h-48 rounded-xl overflow-hidden shadow-2xl transition-all duration-700"
-             [class.animate-slide-right]="isMerging">
-          <img [src]="imagePreview" 
-               alt="Preview" 
-               class="w-full h-full object-cover">
-        </div>
+<!-- Botón de pantalla completa en posición fija -->
+<button 
+  (click)="isFullscreen ? exitFullscreen() : requestFullscreen()" 
+  class="fixed top-4 right-4 bg-blue-600/80 text-white px-3 py-1 rounded-full text-sm z-40 flex items-center">
+  <svg *ngIf="!isFullscreen" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clip-rule="evenodd"/>
+  </svg>
+  <svg *ngIf="isFullscreen" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+    <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd"/>
+  </svg>
+  {{ isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa' }}
+</button>
 
-        <!-- Imagen resultante (fusión) -->
-        <div class="absolute left-1/2 -translate-x-1/2 w-56 h-56 rounded-xl overflow-hidden shadow-2xl transition-all duration-700 transform scale-110 bg-white/20 backdrop-blur-sm z-10">
-          <div class="absolute inset-0 flex items-center justify-center text-white">
-            <svg class="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          </div>
-        </div>
-
-        <!-- Imagen de fondo -->
-        <div class="w-48 h-48 rounded-xl overflow-hidden shadow-2xl transition-all duration-700"
-             [class.animate-slide-left]="isMerging">
-          <img [src]="backgroundPreview" 
-               alt="Background Preview" 
-               class="w-full h-full object-cover">
-        </div>
-      </div>
+<!-- Modal para mostrar el código QR generado directamente -->
+<div *ngIf="showQRModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center backdrop-blur-sm">
+  <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md mx-4 shadow-2xl text-center">
+    <h3 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">{{ currentQRTitle }}</h3>
+    <p class="mb-4 text-gray-600 dark:text-gray-300">
+      Escanea el código QR para descargar
+    </p>
+    <div class="bg-white p-4 rounded-lg mb-4 inline-flex justify-center">
+      <!-- Generando el QR directamente con el componente angularx-qrcode -->
+      <qrcode 
+        [qrdata]="currentUploadedUrl || ''" 
+        [width]="200" 
+        [errorCorrectionLevel]="'M'"
+        [elementType]="'canvas'">
+      </qrcode>
+    </div>
+    <div class="flex justify-center space-x-3">
+      <button 
+        (click)="closeQRModal()" 
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        Cerrar
+      </button>
     </div>
   </div>
 </div> 

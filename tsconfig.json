@@ -22,7 +22,12 @@
     "lib": [
       "ES2022",
       "dom"
-    ]
+    ],
+    "skipLibCheck": true,
+    "allowJs": true,
+    "paths": {
+      "@tensorflow/tfjs-core": ["./node_modules/@tensorflow/tfjs-core/dist/tf-core.d.ts"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
