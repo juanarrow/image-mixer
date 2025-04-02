@@ -1,5 +1,6 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { OnnxService } from './services/onnx.service';
 interface DocumentWithFullscreen extends Document {
   mozCancelFullScreen?: () => Promise<void>;
   webkitExitFullscreen?: () => Promise<void>;
@@ -19,7 +20,32 @@ interface HTMLElementWithFullscreen extends HTMLElement {
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit{
-  constructor(private router: Router) {}
+
+  isModelLoading1: boolean = true;
+  isModelLoading2: boolean = true;
+  isModelLoaded: boolean = false;
+  constructor(
+    private onnxService: OnnxService,
+    private router: Router) {
+      // Cargar ambos modelos ONNX en paralelo
+    // Cargar modelos en paralelo
+    Promise.all([
+      this.onnxService.loadModel('assets/onnx/Shinkai_37.onnx').then(() => {
+        this.isModelLoading1 = false;
+        console.log('Modelo Shinkai cargado correctamente');
+      }),
+      this.onnxService.loadModel2('assets/onnx/Hayao_36.onnx').then(() => {
+        this.isModelLoading2 = false;
+        console.log('Modelo Hayao cargado correctamente');
+      })
+    ]).then(() => {
+      this.isModelLoaded = true;
+    }).catch((error) => {
+      console.error('Error al cargar modelos ONNX:', error);
+      this.isModelLoading1 = false;
+      this.isModelLoading2 = false;
+    });
+  }
   ngOnInit(): void {
     // Mostrar modal personalizado en lugar de confirm
     setTimeout(() => {

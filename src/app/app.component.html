@@ -12,14 +12,29 @@
     <h1 class="text-6xl md:text-7xl font-bold text-white tracking-wider mb-6">
       CPIFP Alan Turing
     </h1>
-    <div class="flex justify-center space-x-2 mb-12">
+    <div *ngIf="!isModelLoaded" class="mb-6">
+      <div class="flex justify-center items-center">
+        <p class="text-xl text-indigo-300 font-medium animate-pulse transition-all duration-1000">
+          Cargando modelos de IA
+        </p>
+        <div class="flex space-x-2 my-[-1px] px-4">
+          <div class="w-3 h-3 bg-blue-500 rounded-full animate-[bounce_1s_ease-in-out_infinite]"></div>
+          <div class="w-3 h-3 bg-indigo-500 rounded-full animate-[bounce_1s_ease-in-out_0.1s_infinite]"></div>
+          <div class="w-3 h-3 bg-purple-500 rounded-full animate-[bounce_1s_ease-in-out_0.2s_infinite]"></div>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="isModelLoaded" class="flex justify-center space-x-2 mb-12">
       <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
       <div class="w-3 h-3 bg-indigo-500 rounded-full animate-pulse delay-75"></div>
       <div class="w-3 h-3 bg-purple-500 rounded-full animate-pulse delay-150"></div>
     </div>
     
-    <a routerLink="/image-composer" 
-       class="inline-flex items-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full hover:from-blue-600 hover:to-indigo-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+    <a 
+      [routerLink]="isModelLoaded ? '/image-composer' : null"
+      (click)="!isModelLoaded ? $event.preventDefault() : null"
+      [ngClass]="{'opacity-50 cursor-not-allowed': !isModelLoaded}"
+      class="inline-flex items-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full hover:from-blue-600 hover:to-indigo-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
       <span class="mr-3">Crear imagen anime</span>
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />

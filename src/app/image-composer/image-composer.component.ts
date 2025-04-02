@@ -118,7 +118,6 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
 
   handModel: any;
   isHandDetected = false;
-  isModelLoaded = false;
   private webcamCheckSubscription?: Subscription;
   showCountdown = false;
 
@@ -126,9 +125,6 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
   webcamHeight = 720;
 
 
-  // Variables para ONNX
-  isModelLoading1 = false;
-  isModelLoading2 = false;
   resultImage1: string | null = null;
   resultImage2: string | null = null;
 
@@ -183,27 +179,7 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
       console.error('Error al configurar TensorFlow:', err);
     });
     
-    // Cargar ambos modelos ONNX en paralelo
-    this.isModelLoading1 = true;
-    this.isModelLoading2 = true;
     
-    // Cargar modelos en paralelo
-    Promise.all([
-      this.onnxService.loadModel('assets/onnx/Shinkai_37.onnx').then(() => {
-        this.isModelLoading1 = false;
-        console.log('Modelo Shinkai cargado correctamente');
-      }),
-      this.onnxService.loadModel2('assets/onnx/Hayao_36.onnx').then(() => {
-        this.isModelLoading2 = false;
-        console.log('Modelo Hayao cargado correctamente');
-      })
-    ]).then(() => {
-      this.isModelLoaded = true;
-    }).catch((error) => {
-      console.error('Error al cargar modelos ONNX:', error);
-      this.isModelLoading1 = false;
-      this.isModelLoading2 = false;
-    });
     
   }
 
@@ -251,7 +227,7 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
 
   public handleInitSuccess(): void {
     console.log('Webcam inicializada con éxito');
-    this.isCameraReady = true;
+    
   }
 
   
@@ -555,11 +531,9 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
     this.webcamCheckSubscription = interval(500)
       .pipe(take(20)) // Intentar por 10 segundos (20 * 500ms)
       .subscribe(() => {
-        if (this.webcam && this.webcam.video && this.webcam.video.nativeElement) {
-          this.isCameraReady = true;
+        if (!this.isCameraReady && this.webcam && this.webcam.video && this.webcam.video.nativeElement && this.webcam.video.nativeElement.srcObject) {
           this.webcamCheckSubscription?.unsubscribe();
           console.log('Webcam inicializada correctamente');
-          
           // Una vez que la cámara está lista, actualizar de nuevo el tamaño
           this.updateWebcamContainerSize();
         }
@@ -755,6 +729,7 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
   // Si implementamos cambio de cámara, debemos actualizar isUsingRearCamera
   onCameraSwitch(facingMode: string) {
     console.log(`Cambiando a cámara ${facingMode}`);
+    this.isCameraReady = true;
     //this.isUsingRearCamera = facingMode === 'environment';
   }
 
