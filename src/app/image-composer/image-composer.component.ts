@@ -176,6 +176,35 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
     private cdr: ChangeDetectorRef
   ) {
     this._triggerObservable = this.trigger.asObservable();
+    // Cargar modelos TensorFlow
+    setupBackends().then(() => {
+      console.log('TensorFlow está listo');
+    }).catch(err => {
+      console.error('Error al configurar TensorFlow:', err);
+    });
+    
+    // Cargar ambos modelos ONNX en paralelo
+    this.isModelLoading1 = true;
+    this.isModelLoading2 = true;
+    
+    // Cargar modelos en paralelo
+    Promise.all([
+      this.onnxService.loadModel('assets/onnx/Shinkai_37.onnx').then(() => {
+        this.isModelLoading1 = false;
+        console.log('Modelo Shinkai cargado correctamente');
+      }),
+      this.onnxService.loadModel2('assets/onnx/Hayao_36.onnx').then(() => {
+        this.isModelLoading2 = false;
+        console.log('Modelo Hayao cargado correctamente');
+      })
+    ]).then(() => {
+      this.isModelLoaded = true;
+    }).catch((error) => {
+      console.error('Error al cargar modelos ONNX:', error);
+      this.isModelLoading1 = false;
+      this.isModelLoading2 = false;
+    });
+    
   }
 
   public get triggerObservable(): Observable<void> {
@@ -239,35 +268,6 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
   }
 
   async ngAfterViewInit() {
-    // Cargar modelos TensorFlow
-    setupBackends().then(() => {
-      console.log('TensorFlow está listo');
-    }).catch(err => {
-      console.error('Error al configurar TensorFlow:', err);
-    });
-    
-    // Cargar ambos modelos ONNX en paralelo
-    this.isModelLoading1 = true;
-    this.isModelLoading2 = true;
-    
-    try {
-      // Cargar modelos en paralelo
-      await Promise.all([
-        this.onnxService.loadModel('assets/onnx/Shinkai_37.onnx').then(() => {
-          this.isModelLoading1 = false;
-          console.log('Modelo Shinkai cargado correctamente');
-        }),
-        this.onnxService.loadModel2('assets/onnx/Hayao_36.onnx').then(() => {
-          this.isModelLoading2 = false;
-          console.log('Modelo Hayao cargado correctamente');
-        })
-      ]);
-    } catch (error) {
-      console.error('Error al cargar modelos ONNX:', error);
-      this.isModelLoading1 = false;
-      this.isModelLoading2 = false;
-    }
-    
     // Inicializar la webcam y manejar la detección de cambios
     this.initWebcam();
     
