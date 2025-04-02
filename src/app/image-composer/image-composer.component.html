@@ -140,8 +140,9 @@
                   (imageCapture)="handleImage($event)"
                   (initError)="handleInitError($event)"
                   (initSuccess)="handleInitSuccess()"
+                  (cameraSwitched)="onCameraSwitch($event)"
                   class="absolute inset-0"
-                  style="transform: scaleX(-1);">
+                  [ngStyle]="{'transform': isMobileDevice() ? 'none' : 'scaleX(-1)'}">
                 </webcam>
                 
                 <!-- Canvas con dimensiones explícitas -->

@@ -78,7 +78,7 @@ async function setupBackends() {
     }
   `]
 })
-export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterViewChecked {
+export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterViewChecked, OnInit {
   @ViewChild('handVideo') handVideo!: ElementRef<HTMLVideoElement>;
   @ViewChild('webcam') webcam: any;  // Solo necesitamos esta referencia
   @ViewChild('handCanvas') handCanvas!: ElementRef<HTMLCanvasElement>;
@@ -166,6 +166,9 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
   private lastContainerWidth = 0;
   private lastContainerHeight = 0;
 
+  // Agregar estas propiedades al componente
+  isUsingRearCamera: boolean = false;
+
   constructor(
     private onnxService: OnnxService,
     private imageSharingService: ImageSharingService
@@ -183,17 +186,23 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
     const ctx = canvas.getContext('2d');
     const img = new Image();
     
-    img.onload = () => {
+    img.onload = (() => {
       canvas.width = img.width;
       canvas.height = img.height;
-      ctx!.scale(-1, 1);
-      ctx!.translate(-img.width, 0);
+      if(!this.isUsingRearCamera){
+        ctx!.scale(-1, 1);
+        ctx!.translate(-img.width, 0);
+      }
+      else{
+        ctx!.scale(1, 1);
+        ctx!.translate(0, 0);
+      }
       ctx!.drawImage(img, 0, 0);
       this.imagePreview = canvas.toDataURL('image/jpeg');
       this.showWebcam = false;
       this.showPreview = true;
       this.goToNextStep(); 
-    };
+    }).bind(this);
     
     img.src = webcamImage.imageAsDataUrl;
   }
@@ -292,7 +301,7 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
       console.error('Error en procesamiento de imagen:', error);
       // Aplicar filtro simple como fallback
       this.applySimpleFilters();
-      alert('Hubo un problema al procesar la imagen. Se ha aplicado un filtro simple en su lugar.');
+      alert('Hubo un problema, todos nos equivocamos, intentalo de nuevo');
     } finally {
       // Asegurar que isMerging se desactive en cualquier caso
       this.isMerging = false;
@@ -677,5 +686,43 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
     console.log('Iniciando cuenta atrás para captura...');
     this.showCountdown = true;
     // La cuenta atrás comienza desde 10 segundos
+  }
+
+  // Método para detectar si estamos en un dispositivo móvil
+  isMobileDevice(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+
+  // Inicializar la configuración de la cámara al inicio
+  ngOnInit() {
+    
+    // Detectar si estamos en un dispositivo móvil para configurar la cámara
+    if (this.isMobileDevice()) {
+      // En móviles configuramos la cámara trasera por defecto
+      this.videoOptions = {
+        
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        
+        facingMode: 'environment' // Preferencia por cámara trasera
+      };
+      this.isUsingRearCamera = true;
+      this.allowCameraSwitch = false; // Opcional: desactivar cambio de cámara en móviles
+    } else {
+      // En escritorio mantenemos la cámara frontal
+      this.videoOptions = {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        facingMode: 'user'
+      };
+      this.isUsingRearCamera = false;
+    }
+    console.log(`Configuración inicial de cámara: ${this.isUsingRearCamera ? 'trasera' : 'frontal'}`);
+  }
+
+  // Si implementamos cambio de cámara, debemos actualizar isUsingRearCamera
+  onCameraSwitch(facingMode: string) {
+    console.log(`Cambiando a cámara ${facingMode}`);
+    //this.isUsingRearCamera = facingMode === 'environment';
   }
 } 
