@@ -1,4 +1,30 @@
 <div class="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 p-4 sm:p-8 relative flex flex-col">
+  <!-- Fila con logo a la izquierda (ahora clickeable) y título centrado -->
+  <div class="w-full max-w-5xl mx-auto flex items-center mb-6">
+    <div class="flex-shrink-0 cursor-pointer transition-transform duration-300 hover:scale-110 group" routerLink="/">
+      <div class="relative">
+        <img 
+          src="assets/imgs/alan.png" 
+          alt="Alan Turing" 
+          class="w-16 h-16 rounded-full object-cover shadow-lg shadow-blue-500/30 border-2 border-blue-400/20"
+        >
+        <div class="absolute inset-0 bg-blue-500/10 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="flex-grow flex justify-center">
+      <h1 class="text-2xl md:text-3xl font-bold text-white tracking-wider px-4">
+        CPIFP Alan Turing
+      </h1>
+    </div>
+    <div class="flex-shrink-0 w-16">
+      <!-- Espacio vacío para equilibrar el diseño -->
+    </div>
+  </div>
+
   <!-- Indicador de pasos -->
   <div class="w-full max-w-5xl mx-auto mb-4">
     <div class="flex items-center justify-between bg-black/20 backdrop-blur-sm px-6 sm:px-12 py-4 sm:py-6 rounded-2xl">
@@ -130,21 +156,16 @@
             </div>
             
             
-            <!-- Indicador y botón de respaldo -->
-            <div class="absolute bottom-6 left-0 right-0 flex justify-center space-x-4 z-20">
-              <div *ngIf="!isHandDetected && isCameraReady" class="bg-blue-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm animate-pulse">
-                Muestra tu mano a la cámara para capturar foto
-              </div>
-              
-            </div>
-          </div>
-          
-          
-          
-          <!-- Indicador de procesamiento de manos (si aplica) -->
-          <div *ngIf="!imagePreview && isProcessingHand" class="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
-            <div class="animate-ping h-2 w-2 mr-2 rounded-full bg-white"></div>
-            Detectando gestos...
+            <!-- Añadir este botón en la sección del paso 2, donde antes estaba el indicador de detección de manos -->
+            <button *ngIf="isCameraReady" 
+                    (click)="startCountdown()"
+                    class="absolute bottom-6 left-0 right-0 mx-auto w-52 bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-700 hover:to-purple-700 text-white px-6 py-3 rounded-full text-lg font-medium shadow-lg hover:shadow-[0_0_15px_rgba(192,38,211,0.7)] transition-all duration-200 flex items-center justify-center z-20">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Vamos!!!
+            </button>
           </div>
         </div>
 
@@ -264,7 +285,7 @@
 
 <!-- Cuenta atrás -->
 <app-countdown-timer *ngIf="showCountdown"
-                    [startFrom]="5"
+                    [startFrom]="10"
                     (finished)="onCountdownFinished()">
 </app-countdown-timer>
 

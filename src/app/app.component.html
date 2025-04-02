@@ -1,7 +1,7 @@
 <router-outlet></router-outlet>
 
 <main *ngIf="!isComposerRoute()" class="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center p-4">
-  <div class="text-center">
+  <div class="text-center z-30">
     <div class="mb-8 transform hover:scale-105 transition-transform duration-300">
       <img 
         src="assets/imgs/alan.png" 
@@ -61,4 +61,14 @@
   </svg>
   {{ isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa' }}
   </button>
+
+  <!-- Imagen CPIFP con efecto de desvanecimiento y transparencia -->
+  <div class="absolute inset-0 w-full h-full overflow-hidden z-[0] pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-t from-transparent via-slate-900/90 to-slate-900 z-10"></div>
+    <img 
+      src="assets/imgs/cpifp_foto.jpg" 
+      alt="CPIFP Alan Turing" 
+      class="w-full h-full object-cover object-center opacity-30"
+    >
+  </div>
 </main>

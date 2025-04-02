@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ElementRef, ViewChild, AfterViewInit, OnInit, HostListener } from '@angular/core';
+import { Component, OnDestroy, ElementRef, ViewChild, AfterViewInit, OnInit, AfterViewChecked, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { WebcamImage, WebcamInitError, WebcamUtil } from 'ngx-webcam';
 import { Subject, Observable, of, interval, Subscription } from 'rxjs';
@@ -78,7 +78,7 @@ async function setupBackends() {
     }
   `]
 })
-export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit {
+export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterViewChecked {
   @ViewChild('handVideo') handVideo!: ElementRef<HTMLVideoElement>;
   @ViewChild('webcam') webcam: any;  // Solo necesitamos esta referencia
   @ViewChild('handCanvas') handCanvas!: ElementRef<HTMLCanvasElement>;
@@ -86,7 +86,6 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
   @ViewChild('webcamContainer') webcamContainer!: ElementRef<HTMLDivElement>;
   
   currentStep = 1;
-  emailForm: FormGroup;
   selectedImage: File | null = null;
   selectedBackground: File | null = null;
   imagePreview: string | null = null;
@@ -103,7 +102,6 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
   showWebcam = true;
   errors: WebcamInitError[] = [];
   public switchCamera: Observable<boolean> = of(true);
-  public multipleWebcamsAvailable = false;
 
   // Opciones de la webcam
   videoOptions: MediaTrackConstraints = {
@@ -126,7 +124,6 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
   webcamWidth = 720;
   webcamHeight = 720;
 
-  private resizeObserver: ResizeObserver;
 
   // Variables para ONNX
   isModelLoading1 = false;
@@ -161,21 +158,19 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
     'hayao': 'Hayao'
   };
 
+  // Agregar propiedades para dimensiones dinámicas
+  webcamContainerWidth: number = 0;
+  webcamContainerHeight: number = 0;
+
+  // Añadir variables para seguimiento de cambios de tamaño
+  private lastContainerWidth = 0;
+  private lastContainerHeight = 0;
+
   constructor(
-    private fb: FormBuilder,
     private onnxService: OnnxService,
     private imageSharingService: ImageSharingService
   ) {
-    this.emailForm = this.fb.group({
-      email: [{ value: '', disabled: true }, [Validators.required, Validators.email]]
-    });
-
-    // Inicializar ResizeObserver
-    this.resizeObserver = new ResizeObserver(() => {
-      if (this.currentStep === 3) {
-        this.updateContainerWidth();
-      }
-    });
+    
   }
 
   public get triggerObservable(): Observable<void> {
@@ -198,59 +193,28 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
       this.showWebcam = false;
       this.showPreview = true;
       this.goToNextStep(); 
-      // Esperar a que el DOM se actualice y luego actualizar el ancho
-      setTimeout(() => {
-        this.updateContainerWidth(); // Actualizar el ancho antes de iniciar la animación
-        // isMerging se activará cuando el usuario presione "Continuar"
-      }, 100);
     };
     
     img.src = webcamImage.imageAsDataUrl;
   }
 
   public triggerSnapshot(): void {
-    console.log('Disparando snapshot');
+    console.log('Capturando imagen...');
     this.trigger.next();
-    
   }
 
   public handleInitError(error: WebcamInitError): void {
-    console.error('Error al inicializar la cámara:', error);
+    console.error('Error al inicializar la webcam:', error);
     this.errors.push(error);
   }
 
   public handleInitSuccess(): void {
-    console.log('Cámara inicializada correctamente');
+    console.log('Webcam inicializada con éxito');
+    this.isCameraReady = true;
   }
 
-  onEmailSubmit() {
-    if (!this.wantsEmail || (this.wantsEmail && this.emailForm.valid)) {
-      this.currentStep = 2;
-      this.initWebcamDetection();
-    }
-  }
-
-  ngOnInit() {
-    // Actualizar tamaño inicial y en resize
-    this.updateWebcamSize();
-    window.addEventListener('resize', this.updateWebcamSize);
-    window.addEventListener('resize', this.updateContainerWidth);
-
-    WebcamUtil.getAvailableVideoInputs()
-      .then((mediaDevices: MediaDeviceInfo[]) => {
-        this.multipleWebcamsAvailable = mediaDevices && mediaDevices.length > 1;
-        console.log('Dispositivos de cámara disponibles:', mediaDevices);
-      });
-
-    
-  }
-
+  
   ngOnDestroy() {
-    // Limpiar listeners de eventos y observadores
-    window.removeEventListener('resize', this.updateContainerWidth);
-    window.removeEventListener('resize', this.updateWebcamDimensions);
-    this.resizeObserver.disconnect();
-    
     // Cancelar suscripciones
     this.webcamCheckSubscription?.unsubscribe();
     this.trigger.complete();
@@ -262,29 +226,10 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
     }
   }
 
-  toggleEmailOption() {
-    if (this.wantsEmail && !this.policiesAccepted) {
-      this.showPolicyModal = true;
-    } else if (!this.wantsEmail) {
-      this.emailForm.get('email')?.disable();
-      this.policiesAccepted = false;
-    }
-  }
-
-  acceptPolicies() {
-    this.policiesAccepted = true;
-    this.showPolicyModal = false;
-    this.emailForm.get('email')?.enable();
-  }
-
-  cancelPolicies() {
-    this.wantsEmail = false;
-    this.policiesAccepted = false;
-    this.showPolicyModal = false;
-    this.emailForm.get('email')?.disable();
-  }
-
   async ngAfterViewInit() {
+
+    
+
     // Cargar ambos modelos ONNX en paralelo
     this.isModelLoading1 = true;
     this.isModelLoading2 = true;
@@ -306,41 +251,7 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
       this.isModelLoading1 = false;
       this.isModelLoading2 = false;
     }
-    
-    // Cargar modelo de manos con configuración mejorada
-    try {
-      this.handModel = await handpose.load({
-        detectionConfidence: 0.99,      // Reducir para detección más sensible
-        maxContinuousChecks: 5,        // Ajustar para mejor seguimiento
-        maxHands: 1,                   // Detectar solo una mano
-        flipHorizontal: false,          // Necesario para webcam selfie
-        scoreThreshold: 0.99           // Más tolerante en detección
-      });
-      
-      console.log('Modelo de manos cargado correctamente');
-      this.isModelLoaded = true;
-      
-      // Verificar si la cámara ya está lista
-      if (this.isCameraReady) {
-        this.startHandDetection();
-      }
-    } catch (error) {
-      console.error('Error al cargar el modelo de manos:', error);
-    }
 
-    // Establecer el ancho del contenedor
-    if (this.imagesContainer?.nativeElement) {
-      this.resizeObserver.observe(this.imagesContainer.nativeElement);
-      this.updateContainerWidth();
-    }
-
-    // Ajustar tamaño de webcam al cambiar tamaño de ventana
-    window.addEventListener('resize', this.updateWebcamDimensions);
-    
-    // Ajustar tamaño inicialmente
-    setTimeout(() => {
-      this.setupWebcamDimensions();
-    }, 300);
   }
   
   async processImages() {
@@ -558,248 +469,12 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
     }
   }
 
-  private initWebcamDetection() {
-    // Si ya estamos intentando inicializar, no hacer nada
-    if (this.isInitializing) {
-      console.log('Inicialización ya en progreso, ignorando solicitud');
-      return;
-    }
-    
-    this.isInitializing = true;
-    console.log('Iniciando detección de webcam');
-    
-    // Verificar si TensorFlow está usando el backend correcto
-    const currentBackend = tf.getBackend();
-    console.log('Backend actual de TensorFlow:', currentBackend);
-    
-    // Si WebGL no está disponible, forzar el uso de CPU
-    if (currentBackend !== 'webgl') {
-      console.warn('WebGL no disponible, usando CPU como alternativa');
-      tf.setBackend('cpu').then(() => {
-        console.log('Backend cambiado a CPU');
-      });
-    }
-    console.log('Iniciando detección de manos');
-    this.startHandDetection();
-    
-    // Cancelar cualquier comprobación anterior
-    this.webcamCheckSubscription?.unsubscribe();
-    
-    // Esperar a que el componente de webcam esté disponible
-    this.webcamCheckSubscription = interval(300).pipe(
-      take(10) // Intentar por 3 segundos máximo
-    ).subscribe({
-      next: () => {
-        if (!this.webcam) {
-          console.log('Webcam no disponible aún, reintentando...');
-          return;
-        }
-        
-        console.log('Webcam disponible, deteniendo interval');
-        this.webcamCheckSubscription?.unsubscribe();
-        
-        // Configurar dimensiones y cargar modelos
-        setTimeout(() => {
-          // Actualizar dimensiones del contenedor de webcam
-          this.setupWebcamDimensions();
-          
-        }, 500);
-      },
-      complete: () => {
-        console.log('No se pudo encontrar el componente de webcam después de varios intentos');
-        this.isInitializing = false;
-        
-        if (this.currentStep === 2) {
-          alert('No se pudo inicializar la cámara. Por favor, recarga la página y asegúrate de conceder los permisos.');
-        }
-      }
-    });
-  }
-
-  
-  async startHandDetection() {
-    if (!this.handModel || !this.webcam?.video?.nativeElement) {
-      console.log('Modelo o video no disponible para detección de manos');
-      setTimeout(() => {
-        this.startHandDetection();
-      }, 500);
-      return;
-
-    }
-
-    try {
-      const video = this.webcam.video.nativeElement;
-      console.log(this.handCanvas);
-      // Asegurar que el canvas tenga el tamaño correcto
-      if (this.handCanvas) {
-        const canvas = this.handCanvas.nativeElement;
-        canvas.width = video.clientWidth || this.webcamWidth;
-        canvas.height = video.clientHeight || this.webcamHeight;
-        
-        // Asegurar que el canvas sea transparente inicialmente
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-      }
-      
-      // Colocar un log para verificar las dimensiones
-      console.log('Dimensiones del video:', {
-        videoWidth: video.videoWidth,
-        videoHeight: video.videoHeight,
-        clientWidth: video.clientWidth,
-        clientHeight: video.clientHeight
-      });
-      
-      // Verificar que el video esté recibiendo frames
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        console.log('Dimensiones de video no válidas, reintentando...');
-        setTimeout(() => this.startHandDetection(), 500);
-        return;
-      }
-      
-      // Detectar manos con opciones extendidas
-      const hands = await this.handModel.estimateHands(video, {
-        flipHorizontal: true
-      });
-      
-      if (this.currentStep === 2 && !this.isHandDetected) {
-        const ctx = this.handCanvas.nativeElement.getContext('2d');
-        if (ctx) {
-          ctx.clearRect(0, 0, this.webcamWidth, this.webcamHeight);
-          console.log('hands', hands);
-          if (hands.length > 0) {
-            // Calcular escalado
-            const scaleX = this.webcamWidth / video.videoWidth;
-            const scaleY = this.webcamHeight / video.videoHeight;
-            
-            ctx.fillStyle = '#00ff00';
-            ctx.strokeStyle = '#00ff00';
-            ctx.lineWidth = 2;
-            
-            hands[0].landmarks.forEach((point: number[]) => {
-              const x = point[0] * scaleX;
-              const y = point[1] * scaleY;
-              
-              ctx.beginPath();
-              ctx.arc(x, y, 4, 0, 2 * Math.PI);
-              ctx.fill();
-            });
-            
-            if (hands[0].annotations) {
-              Object.values(hands[0].annotations).forEach((fingerPoints: any) => {
-                ctx.beginPath();
-                ctx.moveTo(fingerPoints[0][0] * scaleX, fingerPoints[0][1] * scaleY);
-                fingerPoints.forEach((point: number[]) => {
-                  ctx.lineTo(point[0] * scaleX, point[1] * scaleY);
-                });
-                ctx.stroke();
-              });
-            }
-
-            this.isHandDetected = true;
-            this.showCountdown = true;
-          }
-        }
-        if(!this.isHandDetected)
-          requestAnimationFrame(() => this.startHandDetection());
-      }
-    } catch (error) {
-      console.error('Error en la detección de manos:', error);
-      if (this.currentStep === 2 && !this.isHandDetected) {
-          requestAnimationFrame(() => this.startHandDetection());
-      }
-    }
-  }
-
   onCountdownFinished() {
+    console.log('Cuenta atrás finalizada, tomando foto...');
     this.showCountdown = false;
     this.triggerSnapshot();
   }
-
-  private updateWebcamSize = () => {
-    const container = document.querySelector('.aspect-video');
-    if (container) {
-      const containerHeight = container.clientHeight;
-      this.webcamHeight = containerHeight;
-      this.webcamWidth = containerHeight * (16/9);
-    }
-  };
-
-  private updateContainerWidth = () => {
-    if (this.imagesContainer?.nativeElement) {
-      const width = this.imagesContainer.nativeElement.clientWidth;
-      this.imagesContainer.nativeElement.style.setProperty('--container-width', `${width}px`);
-    }
-  };
-
-  sendEmail() {
-    if (!this.resultImage1 || !this.resultImage2 || !this.wantsEmail || !this.emailForm.valid) {
-      return;
-    }
-
-    const email = this.emailForm.get('email')?.value;
-    console.log(`Enviando imágenes a ${email}...`);
-    
-    // Aquí iría la llamada a la API para enviar el email
-    // Por ahora solo mostramos un mensaje de éxito en la consola
-    setTimeout(() => {
-      console.log('Imágenes enviadas correctamente');
-      alert('Imágenes enviadas correctamente al email ' + email);
-    }, 1500);
-  }
-
-  // Método de respaldo para la demostración
-  simulateHandDetection() {
-    console.log('Simulando detección de manos para demostración');
-    this.isHandDetected = true;
-    this.showCountdown = true;
-  }
-
-  // Añade este método para cargar y procesar la imagen de prueba
-  private loadTestImage() {
-    // Usar una imagen de prueba en lugar de la cámara
-    const testImagePath = 'assets/imgs/test.png';
-    
-    console.log('Cargando imagen de prueba:', testImagePath);
-    const img = new Image();
-    
-    img.onload = () => {
-      // Crear un canvas para procesar la imagen
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) return;
-      
-      // Dibujar la imagen en el canvas
-      ctx.drawImage(img, 0, 0);
-      
-      // Usar esta imagen como si fuera de la cámara
-      this.imagePreview = canvas.toDataURL('image/jpeg');
-      this.showWebcam = false;
-      this.showPreview = true;
-      this.currentStep = 3;
-      
-      // Continuar con el procesamiento normal
-      setTimeout(() => {
-        this.updateContainerWidth();
-        this.isMerging = true;
-        setTimeout(() => {
-          this.processImages();
-        }, 1500);
-      }, 100);
-    };
-    
-    img.onerror = (err) => {
-      console.error('Error al cargar imagen de prueba:', err);
-    };
-    
-    // Iniciar carga de la imagen
-    img.src = testImagePath;
-  }
-
+  
   // Método para descargar imagen
   downloadImage(imageUrl: string | null, fileName: string): void {
     if (!imageUrl) {
@@ -822,7 +497,7 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
   goToNextStep() {
     if(this.currentStep === 1){
       this.currentStep = 2;
-      this.initWebcamDetection();
+      this.initWebcam();
     }
     else if (this.currentStep === 2) {
       // Cuando avanzamos del paso 2 al paso 3, procesar la imagen
@@ -837,133 +512,30 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
     } 
   }
 
-  isProcessingHand: boolean = false;
-
-  // Mejorar el método de actualización de dimensiones
-  private updateWebcamDimensions = () => {
-    if (!this.webcamContainer?.nativeElement) {
-      console.warn('Contenedor de webcam no disponible');
-      return;
-    }
-    
-    const container = this.webcamContainer.nativeElement;
-    
-    // Obtener dimensiones reales del contenedor (eliminar 4px por el borde)
-    const containerWidth = container.clientWidth - 4;
-    const containerHeight = container.clientHeight - 4;
-    
-    console.log('Dimensiones reales del contenedor:', containerWidth, 'x', containerHeight);
-    
-    // Asegurar dimensiones mínimas y consistentes
-    const minWidth = 320;
-    const minHeight = 240;
-    
-    // Usar la relación de aspecto del contenedor
-    const aspectRatio = containerWidth / containerHeight;
-    
-    let newWidth: number, newHeight: number;
-    
-    // Intentar mantener la relación de aspecto 4:3 estándar para cámaras
-    if (aspectRatio > 4/3) {
-      // Contenedor más ancho que alto
-      newHeight = Math.max(containerHeight, minHeight);
-      newWidth = Math.round(newHeight * (4/3));
-    } else {
-      // Contenedor más alto que ancho
-      newWidth = Math.max(containerWidth, minWidth);
-      newHeight = Math.round(newWidth * (3/4));
-    }
-    
-    console.log('Nuevas dimensiones calculadas:', newWidth, 'x', newHeight);
-    
-    // Actualizar dimensiones solo si han cambiado significativamente
-    if (Math.abs(this.webcamWidth - newWidth) > 10 || 
-        Math.abs(this.webcamHeight - newHeight) > 10) {
-      
-      this.webcamWidth = newWidth;
-      this.webcamHeight = newHeight;
-      
-      // Actualizar canvas con las mismas dimensiones
-      if (this.handCanvas?.nativeElement) {
-        const canvas = this.handCanvas.nativeElement;
-        canvas.width = newWidth;
-        canvas.height = newHeight;
-        
-        // Limpiar canvas
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-      }
-      
-      // Reposicionar el WebcamComponent para que esté centrado
-      setTimeout(() => {
-        if (this.webcam?.video?.nativeElement) {
-          const videoElement = this.webcam.video.nativeElement;
-          // Forzar las mismas dimensiones que el canvas
-          videoElement.width = newWidth;
-          videoElement.height = newHeight;
-        }
-      }, 100);
-    }
-  };
-
-  private setupWebcamDimensions() {
-    // Establecer valores predeterminados razonables
-    this.webcamWidth = 640;
-    this.webcamHeight = 480;
-    
-    // Actualizar dimensiones basadas en el contenedor
-    this.updateWebcamDimensions();
-    
-    // Agregar listener para actualizaciones de tamaño
-    window.addEventListener('resize', () => {
-      this.updateWebcamDimensions();
-    });
-  }
-
-  
-  
-
-  
-
-  // Añadir este nuevo método para reinicializar la aplicación
-  resetApplication() {
-    // Reiniciar variables principales
-    this.currentStep = 1;
-    this.selectedImage = null;
-    this.selectedBackground = null;
-    this.imagePreview = null;
-    this.backgroundPreview = 'assets/imgs/bosque.jpg';
-    this.showPreview = false;
-    this.isMerging = false;
-    this.showPolicyModal = false;
-    this.isInitializing = false;
-    
-    // Reiniciar imágenes resultado
-    this.resultImage1 = null;
-    this.resultImage2 = null;
-    this.currentUploadedUrl = null;
-    
-    // Reiniciar estado de webcam
+  // Método de inicialización de webcam corregido
+  initWebcam() {
+    console.log('Inicializando webcam...');
     this.showWebcam = true;
-    this.isHandDetected = false;
-    this.showCountdown = false;
-
-    // Reiniciar formulario si es necesario
-    if (!this.wantsEmail) {
-      this.emailForm.get('email')?.disable();
-    } else {
-      this.emailForm.get('email')?.enable();
-    }
-
-    // Cancelar cualquier suscripción pendiente
-    this.webcamCheckSubscription?.unsubscribe();
+    this.isCameraReady = false;
     
-    // Reiniciar selectedStyle
-    this.selectedStyle = null;
+    // Actualizar las dimensiones iniciales del contenedor
+    setTimeout(() => {
+      this.updateWebcamContainerSize();
+    }, 100);
     
-    console.log('Aplicación reinicializada');
+    // Verificar periódicamente si la webcam está lista
+    this.webcamCheckSubscription = interval(500)
+      .pipe(take(20)) // Intentar por 10 segundos (20 * 500ms)
+      .subscribe(() => {
+        if (this.webcam && this.webcam.video && this.webcam.video.nativeElement) {
+          this.isCameraReady = true;
+          this.webcamCheckSubscription?.unsubscribe();
+          console.log('Webcam inicializada correctamente');
+          
+          // Una vez que la cámara está lista, actualizar de nuevo el tamaño
+          this.updateWebcamContainerSize();
+        }
+      });
   }
 
   // Método para abrir modal de QR con una imagen específica
@@ -1022,5 +594,88 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, OnInit 
     this.selectedStyle = style;
     console.log(`Estilo seleccionado: ${this.styleNames[style]}`);
     this.goToNextStep(); // Esto avanza al paso 2
+  }
+
+  // Añadir este nuevo método para reinicializar la aplicación
+  resetApplication() {
+    // Reiniciar variables principales
+    this.currentStep = 1;
+    this.selectedImage = null;
+    this.selectedBackground = null;
+    this.imagePreview = null;
+    this.backgroundPreview = 'assets/imgs/bosque.jpg';
+    this.showPreview = false;
+    this.isMerging = false;
+    this.showPolicyModal = false;
+    this.isInitializing = false;
+    
+    // Reiniciar imágenes resultado
+    this.resultImage1 = null;
+    this.resultImage2 = null;
+    this.currentUploadedUrl = null;
+    
+    // Reiniciar estado de webcam
+    this.showWebcam = true;
+    this.isHandDetected = false;
+    this.showCountdown = false;
+    
+    // Cancelar cualquier suscripción pendiente
+    this.webcamCheckSubscription?.unsubscribe();
+    
+    // Reiniciar selectedStyle
+    this.selectedStyle = null;
+    
+    console.log('Aplicación reinicializada');
+  }
+
+  // Método para actualizar dimensiones dinámicamente
+  updateWebcamContainerSize() {
+    if (!this.webcamContainer?.nativeElement) {
+      console.log('El contenedor de webcam no está disponible');
+      return;
+    }
+    
+    const container = this.webcamContainer.nativeElement;
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+    
+    console.log(`Actualizando dimensiones: ${containerWidth}x${containerHeight}`);
+    
+    // Actualizar propiedades de dimensión
+    this.webcamWidth = containerWidth;
+    this.webcamHeight = containerHeight;
+    
+    // Forzar actualización
+    this.webcamContainerWidth = containerWidth;
+    this.webcamContainerHeight = containerHeight;
+  }
+
+  // Implementar ngAfterViewChecked para detectar cambios en el DOM
+  ngAfterViewChecked() {
+    // Verificar si el contenedor existe y si sus dimensiones han cambiado
+    if (this.webcamContainer?.nativeElement) {
+      const currentWidth = this.webcamContainer.nativeElement.clientWidth;
+      const currentHeight = this.webcamContainer.nativeElement.clientHeight;
+      
+      // Solo actualizar si hay cambios reales en las dimensiones
+      if (currentWidth !== this.lastContainerWidth || currentHeight !== this.lastContainerHeight) {
+        this.lastContainerWidth = currentWidth;
+        this.lastContainerHeight = currentHeight;
+        this.updateWebcamContainerSize();
+      }
+    }
+  }
+
+  // Escuchar cambios de tamaño de ventana
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    this.updateWebcamContainerSize();
+  }
+
+  // Método para iniciar la cuenta atrás en lugar de disparar la captura directamente
+  startCountdown(): void {
+    console.log('Iniciando cuenta atrás para captura...');
+    this.showCountdown = true;
+    // La cuenta atrás comienza desde 10 segundos
   }
 } 
