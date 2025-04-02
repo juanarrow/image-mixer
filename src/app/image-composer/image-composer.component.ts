@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ElementRef, ViewChild, AfterViewInit, OnInit, AfterViewChecked, HostListener } from '@angular/core';
+import { Component, OnDestroy, ElementRef, ViewChild, AfterViewInit, OnInit, AfterViewChecked, HostListener, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { WebcamImage, WebcamInitError, WebcamUtil } from 'ngx-webcam';
 import { Subject, Observable, of, interval, Subscription } from 'rxjs';
@@ -98,7 +98,8 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
   policiesAccepted = false;
 
   // Variables para la webcam
-  private trigger: Subject<void> = new Subject<void>();
+  private trigger = new Subject<void>();
+  private _triggerObservable: Observable<void>;
   showWebcam = true;
   errors: WebcamInitError[] = [];
   public switchCamera: Observable<boolean> = of(true);
@@ -171,13 +172,14 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
 
   constructor(
     private onnxService: OnnxService,
-    private imageSharingService: ImageSharingService
+    private imageSharingService: ImageSharingService,
+    private cdr: ChangeDetectorRef
   ) {
-    
+    this._triggerObservable = this.trigger.asObservable();
   }
 
   public get triggerObservable(): Observable<void> {
-    return this.trigger.asObservable();
+    return this._triggerObservable;
   }
 
   public handleImage(webcamImage: WebcamImage): void {
@@ -208,8 +210,9 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
   }
 
   public triggerSnapshot(): void {
-    console.log('Capturando imagen...');
-    this.trigger.next();
+    setTimeout(() => {
+      this.trigger.next();
+    }, 0);
   }
 
   public handleInitError(error: WebcamInitError): void {
@@ -236,9 +239,13 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
   }
 
   async ngAfterViewInit() {
-
+    // Cargar modelos TensorFlow
+    setupBackends().then(() => {
+      console.log('TensorFlow está listo');
+    }).catch(err => {
+      console.error('Error al configurar TensorFlow:', err);
+    });
     
-
     // Cargar ambos modelos ONNX en paralelo
     this.isModelLoading1 = true;
     this.isModelLoading2 = true;
@@ -260,7 +267,15 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
       this.isModelLoading1 = false;
       this.isModelLoading2 = false;
     }
-
+    
+    // Inicializar la webcam y manejar la detección de cambios
+    this.initWebcam();
+    
+    // Manejar detección de cambios apropiadamente
+    setTimeout(() => {
+      this.updateWebcamContainerSize();
+      this.cdr.detectChanges();
+    }, 100);
   }
   
   async processImages() {
@@ -481,7 +496,10 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
   onCountdownFinished() {
     console.log('Cuenta atrás finalizada, tomando foto...');
     this.showCountdown = false;
-    this.triggerSnapshot();
+    setTimeout(() => {
+      this.triggerSnapshot();
+      this.cdr.detectChanges();
+    }, 0);
   }
   
   // Método para descargar imagen
@@ -530,7 +548,8 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
     // Actualizar las dimensiones iniciales del contenedor
     setTimeout(() => {
       this.updateWebcamContainerSize();
-    }, 100);
+      this.cdr.detectChanges();
+    }, 0);
     
     // Verificar periódicamente si la webcam está lista
     this.webcamCheckSubscription = interval(500)
@@ -644,19 +663,23 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
       return;
     }
     
-    const container = this.webcamContainer.nativeElement;
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
-    
-    console.log(`Actualizando dimensiones: ${containerWidth}x${containerHeight}`);
-    
-    // Actualizar propiedades de dimensión
-    this.webcamWidth = containerWidth;
-    this.webcamHeight = containerHeight;
-    
-    // Forzar actualización
-    this.webcamContainerWidth = containerWidth;
-    this.webcamContainerHeight = containerHeight;
+    // Usar setTimeout para asegurar que los cambios ocurren en el siguiente ciclo
+    setTimeout(() => {
+      const container = this.webcamContainer.nativeElement;
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      
+      console.log(`Actualizando dimensiones: ${containerWidth}x${containerHeight}`);
+      
+      this.webcamWidth = containerWidth;
+      this.webcamHeight = containerHeight;
+      
+      this.webcamContainerWidth = containerWidth;
+      this.webcamContainerHeight = containerHeight;
+      
+      // Forzar detección de cambios
+      this.cdr.detectChanges();
+    }, 0);
   }
 
   // Implementar ngAfterViewChecked para detectar cambios en el DOM
@@ -666,11 +689,16 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
       const currentWidth = this.webcamContainer.nativeElement.clientWidth;
       const currentHeight = this.webcamContainer.nativeElement.clientHeight;
       
-      // Solo actualizar si hay cambios reales en las dimensiones
-      if (currentWidth !== this.lastContainerWidth || currentHeight !== this.lastContainerHeight) {
+      // Solo actualizar si hay cambios significativos en las dimensiones
+      if (Math.abs(currentWidth - this.lastContainerWidth) > 5 || 
+          Math.abs(currentHeight - this.lastContainerHeight) > 5) {
         this.lastContainerWidth = currentWidth;
         this.lastContainerHeight = currentHeight;
-        this.updateWebcamContainerSize();
+        
+        // Usar setTimeout para aplazar la actualización
+        setTimeout(() => {
+          this.updateWebcamContainerSize();
+        }, 0);
       }
     }
   }
@@ -683,9 +711,13 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
 
   // Método para iniciar la cuenta atrás en lugar de disparar la captura directamente
   startCountdown(): void {
-    console.log('Iniciando cuenta atrás para captura...');
-    this.showCountdown = true;
-    // La cuenta atrás comienza desde 10 segundos
+    if(!this.isMobileDevice()){
+      console.log('Iniciando cuenta atrás para captura...');
+      this.showCountdown = true;
+    }
+    else{
+      this.triggerSnapshot();
+    }
   }
 
   // Método para detectar si estamos en un dispositivo móvil
@@ -724,5 +756,51 @@ export class ImageComposerComponent implements OnDestroy, AfterViewInit, AfterVi
   onCameraSwitch(facingMode: string) {
     console.log(`Cambiando a cámara ${facingMode}`);
     //this.isUsingRearCamera = facingMode === 'environment';
+  }
+
+  // Método para abrir la imagen en una nueva pestaña
+  openImageInNewTab(imageUrl: string | null): void {
+    if (!imageUrl) return;
+    
+    // Verificar si la imagen es un data URL
+    if (imageUrl.startsWith('data:image')) {
+      // Para Data URLs, necesitamos crear un HTML básico
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(`
+          <html>
+            <head>
+              <title>Imagen Estilo ${this.selectedStyle ? this.styleNames[this.selectedStyle] : ''}</title>
+              <style>
+                body {
+                  margin: 0;
+                  padding: 0;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  background-color: #1e293b;
+                  min-height: 100vh;
+                }
+                img {
+                  width:100%;
+                  max-width: 100%;
+                  max-height: 100vh;
+                  object-fit: contain;
+                  border-radius: 8px;
+                  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+                }
+              </style>
+            </head>
+            <body>
+              <img src="${imageUrl}" alt="Imagen procesada">
+            </body>
+          </html>
+        `);
+        newWindow.document.close();
+      }
+    } else {
+      // Si no es un Data URL, usar el método normal
+      window.open(imageUrl, '_blank');
+    }
   }
 } 

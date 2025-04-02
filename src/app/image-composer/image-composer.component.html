@@ -1,32 +1,34 @@
 <div class="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 p-4 sm:p-8 relative flex flex-col">
-  <!-- Fila con logo a la izquierda (ahora clickeable) y título centrado -->
-  <div class="w-full max-w-5xl mx-auto flex items-center mb-6">
-    <div class="flex-shrink-0 cursor-pointer transition-transform duration-300 hover:scale-110 group" routerLink="/">
-      <div class="relative">
-        <img 
-          src="assets/imgs/alan.png" 
-          alt="Alan Turing" 
-          class="w-16 h-16 rounded-full object-cover shadow-lg shadow-blue-500/30 border-2 border-blue-400/20"
-        >
-        <div class="absolute inset-0 bg-blue-500/10 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-          </svg>
+  <!-- Cabecera fija con logo y título -->
+  <div class="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-md px-4 sm:px-8 py-3">
+    <div class="w-full max-w-5xl mx-auto flex items-center">
+      <div class="flex-shrink-0 cursor-pointer transition-transform duration-300 hover:scale-110 group" routerLink="/">
+        <div class="relative">
+          <img 
+            src="assets/imgs/alan.png" 
+            alt="Alan Turing" 
+            class="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover shadow-lg shadow-blue-500/30 border-2 border-blue-400/20"
+          >
+          <div class="absolute inset-0 bg-blue-500/10 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="flex-grow flex justify-center">
-      <h1 class="text-2xl md:text-3xl font-bold text-white tracking-wider px-4">
-        CPIFP Alan Turing
-      </h1>
-    </div>
-    <div class="flex-shrink-0 w-16">
-      <!-- Espacio vacío para equilibrar el diseño -->
+      <div class="flex-grow flex justify-center">
+        <h1 class="text-xl md:text-2xl font-bold text-white tracking-wider px-4">
+          CPIFP Alan Turing
+        </h1>
+      </div>
     </div>
   </div>
 
-  <!-- Indicador de pasos -->
-  <div class="w-full max-w-5xl mx-auto mb-4">
+  <!-- Espaciador para compensar el header fijo -->
+  <div class="h-24"></div>
+
+  <!-- Indicador de pasos - sólo visible en desktop -->
+  <div *ngIf="!isMobileDevice()" class="w-full max-w-5xl mx-auto mb-4 relative z-10">
     <div class="flex items-center justify-between bg-black/20 backdrop-blur-sm px-6 sm:px-12 py-4 sm:py-6 rounded-2xl">
       <!-- Paso 1 -->
       <div class="flex flex-col items-center w-32">
@@ -39,7 +41,7 @@
       <!-- Línea divisoria -->
       <div class="flex-1 h-0.5 bg-white/20"></div>
 
-      <!-- Paso 2 (antes era Paso 3) -->
+      <!-- Paso 2 -->
       <div class="flex flex-col items-center w-32">
         <div [class]="'w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 2 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
           2
@@ -50,7 +52,7 @@
       <!-- Línea divisoria -->
       <div class="flex-1 h-0.5 bg-white/20"></div>
 
-      <!-- Paso 3 (antes era Paso 4) -->
+      <!-- Paso 3 -->
       <div class="flex flex-col items-center w-32">
         <div [class]="'w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ' + (currentStep === 3 ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50')">
           3
@@ -60,10 +62,21 @@
     </div>
   </div>
 
-  <!-- Contenedor principal -->
-  <div class="flex-1 flex flex-col items-center justify-center w-full h-[90vh] max-h-[90vh]">
-    <div class="flex flex-col flex-1 w-full h-full landscape:w-full portrait:w-full max-w-5xl mx-auto">
+  <!-- Espaciador para compensar la ausencia del stepper en móvil -->
+  <div *ngIf="isMobileDevice()" class="h-4"></div>
+
+  <!-- Contenedor principal con altura fija para evitar desbordamiento -->
+  <div class="
+  max-w-5xl mx-auto 
+  flex-1 flex flex-col 
+  items-center justify-center 
+  w-full relative
+  landscape:w-full portrait:w-full
+  backdrop-blur-lg landscape:bg-white/10 landscape:rounded-xl 
+  landscape:shadow-2xl landscape:border landscape:border-white/20" style="min-height: 70vh;">
+    <!--<div class="flex flex-col flex-1 w-full h-full landscape:w-full portrait:w-full max-w-5xl mx-auto">
       <div class="flex flex-col flex-1 w-full h-full backdrop-blur-lg landscape:bg-white/10 landscape:rounded-xl landscape:shadow-2xl landscape:border landscape:border-white/20">
+      -->
         <!-- Paso 1: Selección de estilo (reemplaza el form de email) -->
         <div *ngIf="currentStep === 1" class="flex-1 w-full h-full flex flex-col">
           <h2 class="text-2xl sm:text-3xl font-bold text-white p-4 sm:p-8 pb-2 sm:pb-4 flex-none">
@@ -121,18 +134,16 @@
         </div>
 
         <!-- Paso 2: Captura de imagen a pantalla completa -->
-        <div *ngIf="currentStep === 2" class="flex flex-col items-center w-full h-full">
-          <!-- Contenedor principal explícitamente dimensionado -->
-          <div class="relative w-full h-full" style="min-height: 400px; min-width: 300px;">
-            <!-- Contenedor del video con altura y anchura explícitas -->
-            <div #webcamContainer class="relative w-full h-full flex items-center justify-center overflow-hidden" 
-                 style="height: 100%; width: 100%;">
-              <div class="relative" [style.width.px]="webcamWidth" [style.height.px]="webcamHeight">
+        <div *ngIf="currentStep === 2" class="w-full h-full flex-1 flex flex-col relative">
+          <!-- Contenedor de webcam -->
+          <div class="flex-1 relative w-full h-full">
+            <div #webcamContainer class="absolute inset-0 flex items-center justify-center overflow-hidden">
+              <div class="relative w-full h-full max-w-full max-h-full">
                 <webcam 
                   #webcam
                   [trigger]="triggerObservable" 
-                  [height]="webcamHeight" 
-                  [width]="webcamWidth" 
+                  [height]="webcamHeight || 400"
+                  [width]="webcamWidth || 600"
                   [videoOptions]="videoOptions"
                   [allowCameraSwitch]="allowCameraSwitch" 
                   [switchCamera]="nextWebcamObservable" 
@@ -141,26 +152,27 @@
                   (initError)="handleInitError($event)"
                   (initSuccess)="handleInitSuccess()"
                   (cameraSwitched)="onCameraSwitch($event)"
-                  class="absolute inset-0"
-                  [ngStyle]="{'transform': isMobileDevice() ? 'none' : 'scaleX(-1)'}">
+                  class="absolute inset-0 w-full h-full object-cover"
+                  [ngStyle]="{'transform': isMobileDevice() ? 'none' : 'scaleX(-1)', 'text-align':'center'}">
                 </webcam>
                 
                 <!-- Canvas con dimensiones explícitas -->
                 <canvas #handCanvas 
-                  class="absolute inset-0 z-10"
-                  [width]="webcamWidth"
-                  [height]="webcamHeight"
+                  class="absolute inset-0 z-10 w-full h-full"
+                  [width]="webcamWidth || 600"
+                  [height]="webcamHeight || 400"
                   style="display:none;background-color: transparent;">
                   
                 </canvas>
               </div>
             </div>
-            
-            
-            <!-- Añadir este botón en la sección del paso 2, donde antes estaba el indicador de detección de manos -->
+          </div>
+          
+          <!-- Botón de captura fijo en la parte inferior -->
+          <div class="fixed bottom-8 left-0 right-0 z-50 flex justify-center">
             <button *ngIf="isCameraReady" 
                     (click)="startCountdown()"
-                    class="absolute bottom-6 left-0 right-0 mx-auto w-52 bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-700 hover:to-purple-700 text-white px-6 py-3 rounded-full text-lg font-medium shadow-lg hover:shadow-[0_0_15px_rgba(192,38,211,0.7)] transition-all duration-200 flex items-center justify-center z-20">
+                    class="w-52 bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-700 hover:to-purple-700 text-white px-6 py-3 rounded-full text-lg font-medium shadow-lg hover:shadow-[0_0_15px_rgba(192,38,211,0.7)] transition-all duration-200 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -175,14 +187,14 @@
           <!-- Cabecera con botón para volver al inicio -->
           <div class="w-full flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold text-white">
-              Tu imagen en estilo {{ selectedStyle ? styleNames[selectedStyle] : '' }}
+              Tu imagen
             </h2>
-            <button (click)="resetApplication()" 
+            <button [disabled]="isGeneratingQR" (click)="resetApplication()" 
               class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-full shadow-lg transition-all duration-200 flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clip-rule="evenodd" />
               </svg>
-              Volver al inicio
+              Volver
             </button>
           </div>
           
@@ -193,33 +205,40 @@
               <div [class]="'bg-gradient-to-r h-2 ' + (selectedStyle === 'shinkai' ? 'from-purple-500 to-purple-600' : 'from-teal-500 to-teal-600')"></div>
               
               <div class="flex-1 p-4 flex flex-col relative">
-                <h3 class="text-lg font-semibold mb-2 text-white">
-                  Estilo {{ selectedStyle ? styleNames[selectedStyle] : '' }}
-                </h3>
+                <div class="flex flex-row justify-between align-center">
+                  <h3 class="text-lg font-semibold mb-2 text-white">
+                    Estilo {{ selectedStyle ? styleNames[selectedStyle] : '' }}
+                  </h3>
+                  
+                </div>
+                <div *ngIf="!currentUploadedUrl" class="spinner-pulse flex w-full h-full justify-center items-center">
+                  <div class="h-20 w-20 rounded-full border-4 border-t-transparent spinner-rotate" 
+                       [class]="selectedStyle === 'shinkai' ? 'border-purple-500' : 'border-teal-500'">
+                  </div>
+                </div>
                 
                 <div class="relative flex-1">
                   <!-- Imagen procesada -->
-                  <div *ngIf="currentUploadedUrl" class="absolute inset-0 flex items-center justify-center">
+                  <div *ngIf="currentUploadedUrl" class="inset-0 flex items-center justify-center group">
                     <img  
                       [src]="selectedStyle === 'shinkai' ? resultImage1 : resultImage2" 
-                      class="max-h-full max-w-full object-contain rounded-lg" 
-                      [alt]="'Imagen estilo ' + (selectedStyle ? styleNames[selectedStyle] : '')">
-                  </div>
-                  
-                  <!-- Spinner durante la carga - Mejoramos la visibilidad -->
-                  <div *ngIf="!currentUploadedUrl" class="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm rounded-lg z-10">
-                    <div class="flex flex-col items-center p-8 bg-black/40 backdrop-blur-md rounded-xl shadow-xl border border-white/10">
-                      <div class="spinner-pulse">
-                        <div class="h-20 w-20 rounded-full border-4 border-t-transparent" 
-                             [class]="selectedStyle === 'shinkai' ? 'border-purple-500' : 'border-teal-500'"
-                             style="animation: spin 1s linear infinite;"></div>
+                      class="max-h-full max-w-full object-contain rounded-lg cursor-pointer transform transition-all duration-300 hover:scale-[1.02] active:scale-95 hover:shadow-2xl"
+                      [alt]="'Imagen estilo ' + (selectedStyle ? styleNames[selectedStyle] : '')"
+                      (click)="openImageInNewTab(selectedStyle === 'shinkai' ? resultImage1 : resultImage2)">
+                    
+                    <!-- QR superpuesto en la esquina inferior derecha - Tamaño aumentado -->
+                    <div *ngIf="isMobileDevice() && currentUploadedUrl && !isGeneratingQR" 
+                         class="absolute bottom-4 right-4 w-1/3 aspect-square z-10 bg-white/90 backdrop-blur-sm p-1.5 rounded-lg shadow-xl border border-white/20 ">
+                      <div class="w-full h-full flex items-center justify-center">
+                        <qrcode
+                          [qrdata]="currentUploadedUrl" 
+                          [width]="200" 
+                          [elementType]="'img'"
+                          [margin]="0"
+                          [cssClass]="'w-full h-full object-contain'"
+                          [errorCorrectionLevel]="'M'">
+                        </qrcode>
                       </div>
-                      <p class="mt-5 text-base text-white/90 font-medium">
-                        Aplicando estilo {{ selectedStyle ? styleNames[selectedStyle] : '' }}...
-                      </p>
-                      <p class="mt-2 text-sm text-white/70">
-                        Esto puede tardar unos segundos...
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -227,36 +246,28 @@
             </div>
             
             <!-- QR Code y botón de descarga - Panel lateral -->
-            <div class="md:w-1/3 flex flex-col gap-4">
+            <div *ngIf="!isMobileDevice() && currentUploadedUrl && !isGeneratingQR" class="md:w-1/3 flex flex-col gap-4">
               <!-- Código QR - Quitamos flex-1 y añadimos altura fija -->
               <div class="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg border border-white/20 flex flex-col">
                 <div [class]="'bg-gradient-to-r h-2 ' + (selectedStyle === 'shinkai' ? 'from-purple-500 to-purple-600' : 'from-teal-500 to-teal-600')"></div>
                 
-                <div class="p-4 flex flex-col items-center">
+                <div 
+                class="p-4 flex flex-col items-center">
                   <h3 class="text-lg font-semibold mb-1 text-white">Código QR</h3>
                   
                   <p class="text-sm text-white/70 mb-4 text-center">
-                    Escanea para descargar<br>
+                    Escanea o toca para descargar<br>
                     <span class="text-xs">(Expira en 5 minutos)</span>
                   </p>
                   
                   <div class="bg-white p-3 rounded-lg mb-4 flex items-center justify-center">
                     <!-- Generando QR con la librería -->
-                    <qrcode *ngIf="currentUploadedUrl && !isGeneratingQR" 
+                    <qrcode  
                       [qrdata]="currentUploadedUrl" 
                       [width]="180" 
                       [errorCorrectionLevel]="'M'"
                       [elementType]="'canvas'">
                     </qrcode>
-                    
-                    <!-- Spinner mientras se genera el QR -->
-                    <div *ngIf="!currentUploadedUrl || isGeneratingQR" class="h-40 w-40 flex items-center justify-center">
-                      <div class="spinner-pulse">
-                        <div class="h-10 w-10 rounded-full border-4 border-t-transparent" 
-                             [class]="selectedStyle === 'shinkai' ? 'border-purple-500' : 'border-teal-500'"
-                             style="animation: spin 1s linear infinite;"></div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -279,8 +290,8 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      <!--</div>
+    </div>-->
   </div>
 </div>
 
@@ -303,6 +314,26 @@
   
   @keyframes spin {
     to { transform: rotate(360deg); }
+  }
+  
+  .spinner-rotate {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes pulse-click {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(1.2); }
+    100% { filter: brightness(1); }
+  }
+  
+  .pulse-effect {
+    animation: pulse-click 0.5s ease-in-out;
+  }
+  
+  /* Efecto de brillo en hover para la imagen */
+  .result-image:hover {
+    filter: brightness(1.05);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
   }
 </style>
 
